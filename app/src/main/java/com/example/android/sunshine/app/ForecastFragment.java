@@ -1,8 +1,11 @@
 package com.example.android.sunshine.app;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.text.format.Time;
 import android.util.Log;
@@ -12,6 +15,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -28,11 +32,13 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class ForecastFragment extends Fragment {
 
+    public static final String FORECAST_DATA = "forecast_data";
+
     private ArrayAdapter<String> mAdater;
+    private SharedPreferences mPref;
 
     public ForecastFragment() {
     }
@@ -40,7 +46,7 @@ public class ForecastFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        mPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
         setHasOptionsMenu(true);
     }
 
@@ -48,17 +54,29 @@ public class ForecastFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        String[] array = {"Monday - Sunny - 33/33", "125125", "FASFASF", "ASSDAF", "!@asfASFG", "FASFSAF", "FASFASF"};
-        List<String> forecast = new ArrayList<>(Arrays.asList(array));
-        mAdater = new ArrayAdapter<String>(getActivity(), R.layout.list_item_forecast, R.id.list_item_forecast_textview, forecast);
+        mAdater = new ArrayAdapter<>(getActivity(), R.layout.list_item_forecast, R.id.list_item_forecast_textview, new ArrayList<String>());
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         ListView listView = (ListView)rootView.findViewById(R.id.listview_forecast);
         listView.setAdapter(mAdater);
-
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String forecast = mAdater.getItem(position);
+                Intent intent = new Intent(getActivity(), DetailActivity.class);
+                intent.putExtra(FORECAST_DATA, forecast);
+                getActivity().startActivity(intent);
+            }
+        });
 
 
         return rootView;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        updateWeather();
     }
 
     @Override
@@ -71,11 +89,16 @@ public class ForecastFragment extends Fragment {
 
         switch (item.getItemId()) {
             case R.id.action_refresh:
-                new FetchWeatherTask().execute("Dnipropetrovsk");
+                updateWeather();
                 return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void updateWeather() {
+        new FetchWeatherTask().execute(mPref.getString(getString(R.string.pref_location_key),
+                getString(R.string.pref_location_default)));
     }
 
     public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
@@ -194,7 +217,7 @@ public class ForecastFragment extends Fragment {
             // Will contain the raw JSON response as a string.
             String forecastJsonStr = null;
 
-            String units = "metric";
+            String units = mPref.getString(getString(R.string.pref_temp_key), getString(R.string.pref_temp_default));
             int numDays = 7;
 
             try {

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="ListItemForecast">
+        <item name="android:background">@drawable/touch_selector</item>
+    </style>
+</resources>

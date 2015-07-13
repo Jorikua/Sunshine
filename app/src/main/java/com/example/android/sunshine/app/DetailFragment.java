@@ -3,6 +3,7 @@ package com.example.android.sunshine.app;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -32,6 +33,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     ShareActionProvider mShareActionProvider;
 
     private static final int DETAIL_LOADER = 1;
+    public static final String DETAIL_URI = "URI";
+    private Uri mUri;
 
     private static final String[] DETAIL_COLUMNS = {
             WeatherContract.WeatherEntry.TABLE_NAME + "." + WeatherContract.WeatherEntry._ID,
@@ -78,6 +81,11 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
+        Bundle args = getArguments();
+        if (args != null) {
+            mUri = args.getParcelable(DETAIL_URI);
+        }
+
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
         mIconView = (ImageView) rootView.findViewById(R.id.detail_icon);
         mDateView = (TextView) rootView.findViewById(R.id.detail_date_textview);
@@ -120,11 +128,11 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Intent intent = getActivity().getIntent();
-        if (intent == null || intent.getData() == null) {
-            return null;
+        if (null != mUri) {
+            return new CursorLoader(getActivity(), mUri, DETAIL_COLUMNS, null, null, null);
         }
-        return new CursorLoader(getActivity(), intent.getData(), DETAIL_COLUMNS, null, null, null);
+
+        return null;
     }
 
     @Override

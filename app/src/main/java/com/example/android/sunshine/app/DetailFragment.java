@@ -145,7 +145,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             mIconView.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
 
             long date = data.getLong(COL_WEATHER_DATE);
-            String friendlyDateText = Utility.getFriendlyDayString(getActivity(), date);
+            String friendlyDateText = Utility.getDayName(getActivity(), date);
             String dateText = Utility.getFormattedMonthDay(getActivity(), date);
             mFriendlyDateView.setText(friendlyDateText);
             mDateView.setText(dateText);
